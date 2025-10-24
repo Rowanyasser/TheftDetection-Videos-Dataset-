@@ -85,6 +85,3 @@ python3 test_model_load.py
 - Device/CUDA: the app prints `cuda:0` if GPU is used; otherwise it runs on CPU.
 - Path errors on Windows/WSL: prefer absolute paths like `/mnt/d/...`. Update `base_path` in the notebooks as needed.
 
-## License
-
-This code is provided for educational use. Replace with your organization's license if needed.
