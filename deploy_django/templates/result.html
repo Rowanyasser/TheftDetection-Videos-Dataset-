@@ -69,11 +69,24 @@
             <div class="action-buttons">
                 <a href="/" class="btn-back">← Analyze Another Video</a>
             </div>
+
+            {% if is_theft and suspicious_frames %}
+            <div class="details-section" style="margin-top: 20px;">
+                <h3>Most Suspicious Frames</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px;">
+                    {% for img in suspicious_frames %}
+                    <div style="background: #1f1b2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
+                        <img src="{{ img }}" alt="suspicious frame" style="width: 100%; height: 180px; object-fit: cover; display: block;">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
         {% endif %}
 
         <footer>
-            <p>Powered by ResNet3D Deep Learning Model</p>
+            <p>Powered by R(2+1)D Deep Learning Model</p>
         </footer>
     </div>
 </body>

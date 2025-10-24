@@ -67,8 +67,66 @@ Then open http://localhost:8000 and upload a video. The app will:
 - Sample 8 frames at 96x96
 - Run the `r2plus1d_18` model
 - Return label and confidence with a modern UI
+- Display suspicious frames if shoplifting is detected
 
 If you encounter a model loading error, ensure `best_model.pth` exists at the root and that it was trained using `r2plus1d_18`.
+
+## REST API
+
+The deployment now includes a REST API for programmatic access to the theft detection model.
+
+### API Endpoints
+
+**Health Check:**
+```bash
+curl http://localhost:8000/api/health/
+```
+
+**Predict Video:**
+```bash
+curl -X POST http://localhost:8000/api/predict/ \
+  -F "video=@/path/to/video.mp4"
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "prediction": 1,
+  "probability": 0.9997,
+  "confidence": 99.97,
+  "label": "Shoplifting Detected",
+  "is_theft": true,
+  "suspicious_frames": [
+    "/media/uploads/video_suspect_1_t4_abc123.jpg",
+    "/media/uploads/video_suspect_2_t6_abc456.jpg",
+    "/media/uploads/video_suspect_3_t0_def789.jpg"
+  ],
+  "message": "Shoplifting detected with 100.0% confidence"
+}
+```
+
+### Python Example
+
+```python
+import requests
+
+# Check API health
+response = requests.get('http://localhost:8000/api/health/')
+print(response.json())
+
+# Predict video
+with open('video.mp4', 'rb') as f:
+    response = requests.post(
+        'http://localhost:8000/api/predict/',
+        files={'video': f}
+    )
+    result = response.json()
+    print(f"Prediction: {result['label']}")
+    print(f"Confidence: {result['confidence']:.2f}%")
+```
+
+For complete API documentation, see `deploy_django/API_DOCUMENTATION.md`.
 
 ## Quick test (optional)
 

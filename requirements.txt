@@ -9,17 +9,6 @@ seaborn
 scikit-learn
 imbalanced-learn
 tqdm
-torch
-torchvision
-opencv-python
-Pillow
-Django>=4.2,<5.0
-pandas
-matplotlib
-seaborn
-scikit-learn
-imbalanced-learn
- tqdm
 
 # PyTorch + vision (install will pick CPU or CUDA wheels appropriate for your system)
 torch
@@ -29,5 +18,6 @@ torchvision
 opencv-python
 Pillow
 
-# Web app
+# Web app and REST API
 Django>=4.2,<5.0
+djangorestframework>=3.14,<4.0

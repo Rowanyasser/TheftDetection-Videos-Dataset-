@@ -1,5 +1,6 @@
 import torch
 import os
+import uuid
 import numpy as np
 import cv2
 from torchvision.models.video import r2plus1d_18  # Changed from r3d_18
@@ -94,3 +95,94 @@ def predict_video(video_path, model):
         'label': 'Shoplifting Detected' if prediction == 1 else 'No Shoplifting Detected',
         'confidence': prob if prediction == 1 else (1 - prob)
     }
+
+
+def _sample_indices(video_path, fixed_frames=8):
+    """Compute frame indices used by extract_frames for alignment with original video frames."""
+    cap = cv2.VideoCapture(video_path)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    cap.release()
+    if total_frames <= 0:
+        return list(range(fixed_frames))
+    step = max(1, total_frames // fixed_frames)
+    return [i * step for i in range(fixed_frames)]
+
+
+def compute_frame_importance(model, input_tensor):
+    """Occlusion-based importance for each temporal frame.
+
+    Returns a list of length T with the drop in probability when each frame is occluded.
+    """
+    model.eval()
+    input_tensor = input_tensor.to(DEVICE)
+    with torch.no_grad():
+        base_logit = model(input_tensor)
+        base_prob = torch.sigmoid(base_logit).item()
+    T = input_tensor.shape[2]
+    scores = []
+    # Iterate frames and occlude one at a time
+    for t in range(T):
+        occluded = input_tensor.clone()
+        occluded[:, :, t, :, :] = 0.0
+        with torch.no_grad():
+            prob = torch.sigmoid(model(occluded)).item()
+        scores.append(base_prob - prob)
+    return scores, base_prob
+
+
+def get_suspicious_frames(video_path, model, k=3, fixed_frames=8, save_dir=None):
+    """Identify and optionally save the k most suspicious frames.
+
+    - Uses occlusion to score frame importance.
+    - Reads original frames at the same sampled positions used for inference.
+    - If save_dir is provided, saves JPEGs and returns a list of file paths; otherwise returns numpy arrays.
+    """
+    # Prepare input for scoring
+    input_tensor = preprocess_video(video_path, fixed_frames=fixed_frames)
+    scores, base_prob = compute_frame_importance(model, input_tensor)
+
+    # Pick top-k indices by score
+    indices = np.argsort(scores)[::-1][:k].tolist()
+
+    # Read original frames at those indices
+    cap = cv2.VideoCapture(video_path)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    frame_idxs = _sample_indices(video_path, fixed_frames=fixed_frames)
+    raw_frames = []
+    for i, idx in enumerate(frame_idxs):
+        if idx >= total_frames:
+            idx = total_frames - 1
+        if idx < 0:
+            idx = 0
+        cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+        ret, frame = cap.read()
+        if not ret:
+            frame = np.zeros((96, 96, 3), dtype=np.uint8)
+        raw_frames.append(frame)  # BGR
+    cap.release()
+
+    # Collect selected frames
+    selected = [(i, raw_frames[i]) for i in indices if i < len(raw_frames)]
+
+    # Save if requested
+    outputs = []
+    if save_dir is not None:
+        os.makedirs(save_dir, exist_ok=True)
+        base = os.path.splitext(os.path.basename(video_path))[0]
+        uid = uuid.uuid4().hex[:8]
+        for rank, (i, frame_bgr) in enumerate(selected, start=1):
+            # Ensure reasonable size for display
+            try:
+                h, w = frame_bgr.shape[:2]
+                scale = 320 / max(h, w) if max(h, w) > 320 else 1.0
+                if scale != 1.0:
+                    frame_bgr = cv2.resize(frame_bgr, (int(w * scale), int(h * scale)))
+            except Exception:
+                pass
+            out_name = f"{base}_suspect_{rank}_t{i}_{uid}.jpg"
+            out_path = os.path.join(save_dir, out_name)
+            cv2.imwrite(out_path, frame_bgr)
+            outputs.append(out_path)
+        return outputs
+    else:
+        return [f for _, f in selected]
