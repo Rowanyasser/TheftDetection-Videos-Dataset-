@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection Results - Theft Detection System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Detection Results</h1>
+        </div>
+
+        {% if error %}
+        <div class="result-card error-card">
+            <div class="result-icon">⚠️</div>
+            <h2>Error</h2>
+            <p class="result-message">{{ error }}</p>
+            <a href="/" class="btn-back">← Try Again</a>
+        </div>
+        {% else %}
+        <div class="result-card {% if is_theft %}theft-detected{% else %}no-theft{% endif %}">
+            <div class="result-icon">
+                {% if is_theft %}
+                    ⚠️
+                {% else %}
+                    ✅
+                {% endif %}
+            </div>
+            
+            <h2 class="result-title">{{ prediction }}</h2>
+            
+            <div class="confidence-bar">
+                <div class="confidence-label">Confidence Level</div>
+                <div class="confidence-meter">
+                    <div class="confidence-fill" data-confidence="{{ confidence }}"></div>
+                </div>
+                <div class="confidence-value">{{ confidence }}</div>
+            </div>
+
+            <script>
+                (function() {
+                    var fills = document.querySelectorAll('.confidence-fill');
+                    fills.forEach(function(el) {
+                        var val = parseFloat(el.getAttribute('data-confidence')) || 0;
+                        el.style.width = val + '%';
+                    });
+                })();
+            </script>
+
+            <div class="details-section">
+                <div class="detail-item">
+                    <span class="detail-label">Prediction:</span>
+                    <span class="detail-value">{{ prediction }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Model Confidence:</span>
+                    <span class="detail-value">{{ confidence }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value {% if is_theft %}status-alert{% else %}status-clear{% endif %}">
+                        {% if is_theft %}ALERT{% else %}CLEAR{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/" class="btn-back">← Analyze Another Video</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <footer>
+            <p>Powered by ResNet3D Deep Learning Model</p>
+        </footer>
+    </div>
+</body>
+</html>

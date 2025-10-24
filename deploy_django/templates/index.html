@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theft Detection System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Theft Detection System</h1>
+            <p class="subtitle">Upload a video to detect potential shoplifting behavior</p>
+        </div>
+
+        <div class="upload-section">
+            <form method="post" action="/predict/" enctype="multipart/form-data" id="uploadForm">
+                <div class="file-input-wrapper">
+                    <input type="file" name="video" id="videoInput" accept="video/*" required>
+                    <label for="videoInput" class="file-label">
+                        <span class="file-icon">📹</span>
+                        <span class="file-text">Choose Video File</span>
+                    </label>
+                    <div id="fileName" class="file-name"></div>
+                </div>
+                
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <span class="btn-text">Analyze Video</span>
+                    <span class="btn-icon">→</span>
+                </button>
+            </form>
+
+            {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="info-section">
+            <h3>How it works</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-icon">📤</div>
+                    <h4>1. Upload</h4>
+                    <p>Select a video file from your device</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">🤖</div>
+                    <h4>2. Analyze</h4>
+                    <p>AI model processes the video frames</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">✅</div>
+                    <h4>3. Results</h4>
+                    <p>Get instant detection results</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by ResNet3D Deep Learning Model</p>
+        </footer>
+    </div>
+
+    <script>
+        const videoInput = document.getElementById('videoInput');
+        const fileName = document.getElementById('fileName');
+        const uploadForm = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        videoInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                fileName.textContent = '📁 ' + e.target.files[0].name;
+                fileName.style.display = 'block';
+            }
+        });
+
+        uploadForm.addEventListener('submit', function(e) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="btn-text">Processing...</span><span class="loader"></span>';
+        });
+    </script>
+</body>
+</html>

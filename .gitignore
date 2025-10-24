@@ -1,0 +1,27 @@
+# Environments
+.venv/
+.env
+
+# Python caches
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Data and large files
+Shop Dataset/
+Shop DataSet/
+*.pth
+
+# Django runtime
+deploy_django/db.sqlite3
+deploy_django/media/
+deploy_django/media/uploads/
+staticfiles/
